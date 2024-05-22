@@ -8,7 +8,7 @@ from sqlite3 import Connection
 from PIL import Image, ImageOps
 
 st.set_page_config(
-    page_title="Brain Tumour Classifier",
+    page_title="AutoVision Brain Tumour Classifier",
     page_icon="🧠",
     # layout="wide",
     initial_sidebar_state="auto",
