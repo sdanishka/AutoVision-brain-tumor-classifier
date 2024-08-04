@@ -1,9 +1,7 @@
-tensorflow
-keras
-Pillow
-numpy
-pandas
-seaborn
-matplotlib
-scikit-learn
 streamlit
+numpy
+Pillow
+tensorflow
+opencv-python-headless
+opencv-python
+clerk

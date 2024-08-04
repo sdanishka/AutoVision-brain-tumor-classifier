@@ -1,97 +1,56 @@
-import sqlite3
-import numpy as np
-# import pandas as pd
 import streamlit as st
+from tensorflow.keras.utils import load_img, img_to_array
+import numpy as np
+import cv2
+from PIL import Image
 import tensorflow as tf
+from clerk import Clerk
 
-from sqlite3 import Connection
-from PIL import Image, ImageOps
+# Initialize Clerk client
+clerk_client = Clerk("sk_test_wBCikw9fWpuchaxuHcUA6Ie6t9wCMNT7XDqmacZRg6")
 
 st.set_page_config(
-    page_title="Brain Tumour Classifier",
-    page_icon="🧠",
-    # layout="wide",
-    initial_sidebar_state="auto",
+    layout="wide",
+    page_title='Human disease detection',
+    page_icon='🦴',
 )
 
-URI_SQLITE_DB = "predictions.db"
+
+def verify_user(user_id):
+    try:
+        # Fetch user from Clerk
+        user = clerk_client.users.get_by_id(user_id)
+        return True
+    except Exception as e:
+        return False
 
 
-def init_db(conn: Connection):
-    conn.execute('CREATE TABLE IF NOT EXISTS userstable(PREDICTION TEXT)')
-    conn.commit()
+def bone_fracture():
+    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
+    if uploaded_file is not None:
+        image = Image.open(uploaded_file)
+        st.image(image, caption="Uploaded Image", width=250)
+
+        arr = img_to_array(image)
+        arr = cv2.resize(arr, (150, 150))
+        arr = arr.reshape(-1, 150, 150, 3)
+        arr = arr / 255
+
+        prediction = BONE_MODEL.predict([arr])
+        confidence_level = round(prediction.max(), 2)
+        predicted_class = BONE_FRACTURE_CLASSES[prediction.argmax()]
+        st.write(f'Predicted Result : {predicted_class}  and Confidence Level : {confidence_level}')
 
 
-def app():
-    interpreter = tf.lite.Interpreter(model_path='brain.tflite')
-    interpreter.allocate_tensors()
-
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
-    print(output_details)
-
-    st.subheader("Brain Tumor Classifier", divider='grey')
-    st.markdown("")
-    st.caption("Upload an image to determine the type of tumor")
-
-    with st.sidebar:
-        st.header("Brain Tumors?")
-
-        with st.expander("About "):
-            st.write(
-                "A brain tumor is a mass or growth of abnormal cells in the brain. Tumors can be either benign ("
-                "non-cancerous)"
-                "or malignant (cancerous). They can originate in the brain itself or spread from other parts of the "
-                "body.")
-
-        with st.expander("Symptoms and Signs "):
-            st.write(
-                "Common symptoms of brain tumors include headaches, seizures, changes in vision, difficulty speaking or"
-                "understanding speech, and changes in mood or personality.")
-
-        with st.expander("How to Monitor Brain Health and Seek Help"):
-            st.write("1. Regular medical check-ups and screenings can help monitor brain health.\n"
-                     "2. Pay attention to any unusual symptoms and seek medical advice if you notice persistent "
-                     "changes.\n"
-                     "3. Early detection and treatment are crucial for better outcomes.")
-
-    file = st.file_uploader("Please upload your MRI Scan", type=["png", "jpg", "jpeg"])
-
-    conn = get_connection(URI_SQLITE_DB)
-    init_db(conn)
-
-    def import_and_predict(image_data):
-        size = (256, 256)
-        image1 = ImageOps.fit(image_data, size, Image.Resampling.LANCZOS)
-        image1 = image1.convert('RGB')
-        img = np.array(image1) / 255.0
-        img_reshape = img[np.newaxis, ...]
-
-        # Prepare input data for TensorFlow Lite model
-        interpreter.set_tensor(input_details[0]['index'], img_reshape.astype(np.float32))
-        interpreter.invoke()
-
-        # Get the output from TensorFlow Lite model
-        prediction = interpreter.get_tensor(output_details[0]['index'])
-
-        return prediction
-
-    labels = ['pituitary', 'no tumor', 'glioma', 'meningioma']
-
-    if file is not None:
-        image = Image.open(file)
-        st.image(image, width=300)
-        predictions = import_and_predict(image)
-        predictions = np.argmax(predictions)
-        predictions = labels[predictions]
-        string = "The patient most likely has " + predictions
-        st.success(string)
+def main():
+    user_id = st.experimental_get_query_params().get("userId", [None])[0]
+    if user_id and verify_user(user_id):
+        st.title('AutoVision Bone Fracture')
+        st.write("Provide quick and accurate predictions bone fractures.")
+        bone_fracture()
+    else:
+        st.warning("Please log in to access this app.")
 
 
-@st.cache_resource
-def get_connection(path: str):
-    return sqlite3.connect(path, check_same_thread=False)
-
-
-if __name__ == '__main__':
-    app()
+if __name__ == "__main__":
+    main()
