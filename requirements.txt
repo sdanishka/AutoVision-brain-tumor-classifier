@@ -1,7 +1,7 @@
 streamlit
-numpy==1.22
+numpy
 Pillow
-tensorflow==2.12
+tensorflow
 opencv-python-headless
 opencv-python
 clerk
