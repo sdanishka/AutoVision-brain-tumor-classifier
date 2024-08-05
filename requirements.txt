@@ -1,0 +1,7 @@
+streamlit
+numpy
+Pillow
+tensorflow
+opencv-python-headless
+opencv-python
+clerk
