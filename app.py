@@ -32,7 +32,7 @@ def make_predictions(image):
         a = "Result: Meningioma Tumor"
     elif a == 3:
         a = "Result: No Tumor"
-    elif a = 4:
+    elif a == 4:
         a = "Result: Pituitary Tumor"
     else:
         print("Invalid image: prediction does not match any expected categories")
