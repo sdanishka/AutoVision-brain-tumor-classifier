@@ -1,4 +1,3 @@
-torch
-roboflow 
+inference-sdk
 streamlit 
-opencv-python-headless
+
