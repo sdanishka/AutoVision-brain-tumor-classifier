@@ -1,46 +1,38 @@
 import streamlit as st
-import torch
-import cv2
+from inference_sdk import InferenceHTTPClient
 from PIL import Image
-import numpy as np
-import os
+import io
 
-from roboflow import Roboflow
+# Initialize the InferenceHTTPClient
+CLIENT = InferenceHTTPClient(
+    api_url="https://detect.roboflow.com",
+    api_key="Pqs2Di4XkKfl9U7avfkn"
+)
 
-# Roboflow configuration
-rf = Roboflow(api_key="Pqs2Di4XkKfl9U7avfkn")
-project = rf.workspace("sara-ghazi-qj73m").project("bt-cohqx")
-version = project.version(1)
-dataset = version.download("yolov5")
+def infer_image(image):
+    # Save the image to a byte buffer
+    buffer = io.BytesIO()
+    image.save(buffer, format="JPEG")
+    buffer.seek(0)
 
-# Define model path
-model_path = dataset.model_path
+    # Perform inference
+    result = CLIENT.infer(buffer, model_id="brain-tumors-detection/2")
+    return result
 
-# Load YOLOv5 model directly
-model = torch.load(model_path, map_location=torch.device('cpu'))
-model.eval()
-
-st.title("Brain Tumor Classification")
-st.write("Upload an image to detect brain tumors.")
+st.title("Brain Tumor Detection")
 
 # Upload image
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("Choose an image...", type="jpg")
 
 if uploaded_file is not None:
     # Read and display the image
     image = Image.open(uploaded_file)
-    st.image(image, caption='Uploaded Image.', use_column_width=True)
-    
-    # Convert image to OpenCV format
-    image = np.array(image)
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    st.image(image, caption='Uploaded Image', use_column_width=True)
     
     # Perform inference
-    results = model(image)
+    st.write("Classifying...")
+    result = infer_image(image)
     
-    # Draw bounding boxes
-    results.render()
-    st.image(results.imgs[0], caption='Processed Image.', use_column_width=True)
-    
-    # Print results
-    st.write(results.pandas().xyxy[0])
+    # Display results
+    st.write("Results:")
+    st.json(result)
