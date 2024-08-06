@@ -10,12 +10,10 @@ CLIENT = InferenceHTTPClient(
 )
 
 def infer_image(image):
-    # Save the image to a byte buffer
+    # Convert image to bytes
     buffer = io.BytesIO()
     image.save(buffer, format="JPEG")
     buffer.seek(0)
-
-    # Perform inference
     result = CLIENT.infer(buffer, model_id="brain-tumors-detection/2")
     return result
 
@@ -31,8 +29,10 @@ if uploaded_file is not None:
     
     # Perform inference
     st.write("Classifying...")
-    result = infer_image(image)
-    
-    # Display results
-    st.write("Results:")
-    st.json(result)
+    try:
+        result = infer_image(image)
+        # Display results
+        st.write("Results:")
+        st.json(result)
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
