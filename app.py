@@ -23,9 +23,6 @@ def make_predictions(image):
     rgb_img = np.array(rgb_img, dtype=np.float64)
     rgb_img = rgb_img.reshape(1, 244, 244, 3)
 
-    class InvalidImageException(Exception):
-    pass
-
     # Make predictions
     predictions = model.predict(rgb_img)
     a = int(np.argmax(predictions))
@@ -38,7 +35,7 @@ def make_predictions(image):
     elif:
         a = "Result: Pituitary Tumor"
     else:
-        raise InvalidImageException("Invalid image: prediction does not match any expected categories")
+        print("Invalid image: prediction does not match any expected categories")
     return a
 
 
